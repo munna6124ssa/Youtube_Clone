@@ -77,8 +77,8 @@ export const AuthProvider = ({ children }) => {
       toast.dismiss(loadingToast);
       toast.success('Logged in successfully!');
       
-      // Refresh theme based on current location and time
-      refreshTheme();
+      // Refresh theme based on current location and time (force override manual preference)
+      refreshTheme(true);
       
       return { success: true };
     } catch (error) {
@@ -107,8 +107,8 @@ export const AuthProvider = ({ children }) => {
       toast.dismiss(loadingToast);
       toast.success('Login successful!');
       
-      // Refresh theme based on current location and time
-      refreshTheme();
+      // Refresh theme based on current location and time (force override manual preference)
+      refreshTheme(true);
       
       return { success: true };
     } catch (error) {
@@ -137,8 +137,8 @@ export const AuthProvider = ({ children }) => {
       toast.dismiss(loadingToast);
       toast.success('Account created successfully!');
       
-      // Refresh theme based on current location and time
-      refreshTheme();
+      // Refresh theme based on current location and time (force override manual preference)
+      refreshTheme(true);
       
       return { success: true };
     } catch (error) {
@@ -165,12 +165,12 @@ export const AuthProvider = ({ children }) => {
     setIsAuthenticated(true);
     console.log('Direct login completed - isAuthenticated set to true'); // Debug log
     
-    // Refresh theme based on current location and time
-    refreshTheme();
+    // Refresh theme based on current location and time (force override manual preference)
+    refreshTheme(true);
   };
 
   // Function to refresh theme based on current location and time
-  const refreshTheme = async () => {
+  const refreshTheme = async (forceOverride = false) => {
     try {
       const response = await themeAPI.getTheme();
       const newTheme = response.data.theme;
@@ -179,8 +179,8 @@ export const AuthProvider = ({ children }) => {
       const savedTheme = localStorage.getItem('theme');
       const isManualTheme = savedTheme && ['light', 'dark'].includes(savedTheme);
       
-      // Only apply auto-theme if user hasn't manually set a preference
-      if (!isManualTheme) {
+      // Apply auto-theme if user hasn't manually set a preference OR if forced
+      if (!isManualTheme || forceOverride) {
         // Apply theme to document
         if (newTheme === 'dark') {
           document.documentElement.classList.add('dark');
@@ -188,15 +188,22 @@ export const AuthProvider = ({ children }) => {
           document.documentElement.classList.remove('dark');
         }
         
-        const { location, time, reasoning } = response.data;
+        const { location, currentHour, reason } = response.data;
         console.log(`🎨 Theme refreshed after login: ${newTheme} theme applied`);
-        console.log(`ℹ️ 📍 ${location.city}, ${location.state} | ⏰ Hour: ${time.currentHour} | ${reasoning.reason}`);
+        console.log(`ℹ️ 📍 ${location.city}, ${location.state} | ⏰ Hour: ${currentHour} | ${reason}`);
+        
+        // If forcing override, clear manual preference
+        if (forceOverride) {
+          localStorage.removeItem('theme');
+          console.log('🎨 Manual theme preference cleared, using auto-theme');
+        }
         
         // Update theme context state without saving to localStorage
         // (ThemeContext should handle this)
         window.dispatchEvent(new CustomEvent('themeRefresh', { detail: { theme: newTheme, auto: true } }));
       } else {
         console.log('🎨 User has manual theme preference, skipping auto-theme');
+        console.log('💡 To reset: Clear localStorage theme or refresh with force override');
       }
     } catch (error) {
       console.log('Failed to refresh theme after login (handled silently):', error.message);
