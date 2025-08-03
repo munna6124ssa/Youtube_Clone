@@ -35,24 +35,19 @@ router.get('/', async (req, res) => {
     // Check if state is southern (Tamil Nadu, Kerala, Karnataka, Andhra Pradesh, Telangana)
     const isSouthern = isSouthernState(location.state);
     
-    // Theme logic: Light theme ONLY for anonymous users in Southern states during 10 AM-12 PM
-    // Logged-in users always get dark theme
-    let theme, reason;
+    // Light theme ONLY if Southern state AND 10 AM-12 PM (regardless of login status)
+    const theme = (isSouthern && isLightTimeRange) ? 'light' : 'dark';
     
-    if (req.user) {
-      // Logged-in users always get dark theme
-      theme = 'dark';
-      reason = 'Logged-in users get dark theme';
+    let reason = '';
+    if (theme === 'light') {
+      reason = 'Southern India location (TN/KL/KA/AP/TG) AND time is between 10 AM-12 PM';
     } else {
-      // Anonymous users: Light theme only if Southern state AND 10 AM-12 PM
-      if (isSouthern && isLightTimeRange) {
-        theme = 'light';
-        reason = 'Anonymous user in Southern India during 10 AM-12 PM';
+      if (!isSouthern) {
+        reason = 'Not in Southern India (requires TN/KL/KA/AP/TG)';
+      } else if (!isLightTimeRange) {
+        reason = `Time is outside 10 AM-12 PM range (current: ${currentHour}:00)`;
       } else {
-        theme = 'dark';
-        reason = isSouthern ? 
-          'Anonymous user in Southern India but outside 10 AM-12 PM' : 
-          'Anonymous user not in Southern India';
+        reason = 'Neither Southern India nor correct time range';
       }
     }
     
