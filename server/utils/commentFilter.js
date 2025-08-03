@@ -20,10 +20,21 @@ const containsSpecialChars = (text) => {
 const cleanComment = (text) => {
   // Very lenient cleaning - only remove truly dangerous characters
   // Keep all normal punctuation, symbols, emojis, and Unicode characters
+  if (!text || typeof text !== 'string') {
+    return '';
+  }
+  
   let cleaned = text.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, ''); // Remove control characters only
   
-  // Filter profanity (but keep the structure)
-  cleaned = filter.clean(cleaned);
+  // Filter profanity (but keep the structure) - only if text exists
+  if (cleaned && cleaned.trim()) {
+    try {
+      cleaned = filter.clean(cleaned);
+    } catch (error) {
+      console.log('Profanity filter error, using original text:', error.message);
+      // If filter fails, use original cleaned text
+    }
+  }
   
   // Remove excessive whitespace
   cleaned = cleaned.replace(/\s+/g, ' ');
