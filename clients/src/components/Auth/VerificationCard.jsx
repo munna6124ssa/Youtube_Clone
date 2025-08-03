@@ -78,7 +78,8 @@ const VerificationCard = ({ registrationData, onBack }) => {
   // Verify OTP mutation
   const verifyMutation = useMutation({
     mutationFn: async (otpString) => {
-      const response = await fetch('/api/auth/verify-registration', {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const response = await fetch(`${API_BASE_URL}/auth/verify-registration`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -113,7 +114,8 @@ const VerificationCard = ({ registrationData, onBack }) => {
   const resendMutation = useMutation({
     mutationFn: async () => {
       // This would need to be implemented on the backend
-      const response = await fetch('/api/auth/resend-registration-otp', {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const response = await fetch(`${API_BASE_URL}/auth/resend-registration-otp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

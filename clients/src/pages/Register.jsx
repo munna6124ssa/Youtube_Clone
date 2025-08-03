@@ -41,7 +41,8 @@ const Register = () => {
   const onSubmit = async (data) => {
     try {
       console.log('Registration data:', data); // Debug log
-      const response = await fetch('/api/auth/register', {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
